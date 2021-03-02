@@ -4,6 +4,7 @@ import (
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
 	"github.com/zqjzqj/instantCustomer/appWeb"
+	"github.com/zqjzqj/instantCustomer/global"
 	"github.com/zqjzqj/instantCustomer/models"
 )
 
@@ -26,7 +27,7 @@ func (s *SiteController) PostLogin(ctx iris.Context) *appWeb.ResponseFormat {
 		"phone":ma.Phone,
 		"real_name":ma.RealName,
 		"mch_name":ma.Mch.Name,
-		"last_login_time":ma.LastLoginTime,
+		"last_login_time":ma.LastLoginTime.Format(global.DateTimeFormatStr),
 	})
 }
 
@@ -44,6 +45,6 @@ func (s *SiteController) PostRegister(ctx iris.Context) *appWeb.ResponseFormat {
 		"phone":ma.Phone,
 		"real_name":ma.RealName,
 		"mch_name":ma.Mch.Name,
-		"last_login_time":ma.LastLoginTime,
+		"last_login_time":ma.LastLoginTime.Format(global.DateTimeFormatStr),
 	})
 }

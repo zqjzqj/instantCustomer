@@ -5,6 +5,7 @@ import (
 	"github.com/kataras/iris/v12"
 	"github.com/zqjzqj/instantCustomer/appWeb/routes"
 	"github.com/zqjzqj/instantCustomer/config"
+	"github.com/zqjzqj/instantCustomer/global"
 	"github.com/zqjzqj/instantCustomer/logs"
 	"github.com/zqjzqj/instantCustomer/migrates"
 	"os"
@@ -28,7 +29,9 @@ func main() {
 	app := iris.New()
 	//注册api路由
 	routes.RegisterApiRoutes(app)
-	err := app.Run(iris.Addr(":" + config.GetWebCfg().GetPort()))
+	err := app.Run(iris.Addr(":" + config.GetWebCfg().GetPort()), iris.WithConfiguration(iris.Configuration{
+		TimeFormat: global.DateTimeFormatStr,
+	}))
 	if err != nil {
 		logs.Fatal(err)
 	}
