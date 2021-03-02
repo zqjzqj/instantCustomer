@@ -5,6 +5,7 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"time"
 )
 
 type Database struct {
@@ -37,7 +38,7 @@ func NewDatabase(host, port, database, charset, username, password string, maxId
 	if maxOpenCounts > 0 {
 		sqlDB.SetMaxOpenConns(maxOpenCounts)
 	}
-	//sqlDB.SetConnMaxLifetime(2 * time.Minute)
+	sqlDB.SetConnMaxLifetime(5 * time.Minute)
 	if err = sqlDB.Ping(); err != nil {
 		return nil, err
 	}

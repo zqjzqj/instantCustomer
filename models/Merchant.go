@@ -23,7 +23,7 @@ type Merchant struct {
 	Contacts string `gorm:"size:50;not null;comment:联系人"`
 	Phone string `gorm:"size:20;index:idx_phone;not null;comment:联系人电话"`
 	MaxSeats uint `gorm:"type:int(11) unsigned;default:1;comment:最大坐席数(可以同时在线的成员账号数)"`
-	Expired time.Time `gorm:"idx_expired;autoCreateTime;comment:到期时间"`
+	Expired time.Time `gorm:"index:idx_expired;autoCreateTime;comment:到期时间"`
 	Version uint8 `gorm:"default:0;comment:版本：0体验版 1标准版 2高级版...."`
 	Status uint8 `gorm:"default:1;comment:商户状态 1正常 0禁用"`
 	LastLoginTime time.Time `gorm:"comment:最近一次登陆时间"`

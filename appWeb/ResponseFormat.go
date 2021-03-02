@@ -7,9 +7,9 @@ const (
 )
 
 type ResponseFormat struct {
-	Code int
-	Msg string
-	Data interface{}
+	Code int `json:"code"`
+	Msg string `json:"msg"`
+	Data interface{} `json:"data"`
 }
 
 func NewResponse(code int, msg string, data interface{}) *ResponseFormat {

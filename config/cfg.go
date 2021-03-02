@@ -100,6 +100,9 @@ func LoadConfigJson(p string) error {
 	//载入web配置
 	w := &Web{}
 	w.port = viper.GetString("web.port")
+	if w.port == "" {
+		w.port = "80"
+	}
 	cfg.web = w
 
 	//载入日志配置

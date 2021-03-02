@@ -29,7 +29,7 @@ type MchAccount struct {
 	RealName string `gorm:"size:20;comment:姓名;default:''"`
 	MaxSession uint `gorm:"type:int(11) unsigned;default:99;comment:最大会话数"`
 	Role uint8	`gorm:"default:1;comment:1普通客服 2管理员"`
-	Token  sql.NullString `gorm:"size:32;idx_token,unique';comment:用户移动端登陆token"`
+	Token  sql.NullString `gorm:"size:32;index:idx_token,unique';comment:用户移动端登陆token"`
 	TokenStatus uint8 `gorm:"default:1;comment:0禁用 1正常"`
 	Status uint8 `gorm:"default:1;comment:0禁用 1正常"`
 	OnlineStatus uint8 `gorm:"default:0;comment:商户在线状态 1在线 0离线 2隐身"`
@@ -109,6 +109,14 @@ func (ma *MchAccount) GetMch() {
 	}
 	db := config.GetDbDefault()
 	db.Where("id = ?", ma.MchId).Find(ma.Mch)
+}
+
+func (ma *MchAccount) GetMerchant() *Merchant {
+	if ma.Mch != nil {
+		return ma.Mch
+	}
+	ma.GetMch()
+	return ma.Mch
 }
 
 
