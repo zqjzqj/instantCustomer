@@ -6,6 +6,22 @@ import (
 	"log"
 )
 
+type LoggerService interface {
+	Log(string)
+}
+
+type PrefixedLogger struct {
+	Prefix string
+}
+
+func (s *PrefixedLogger) Log(msg string) {
+	if s.Prefix == "" {
+		PrintlnInfo(msg)
+	} else {
+		PrintlnInfo(s.Prefix, ":",msg)
+	}
+}
+
 //这个包用来统一的日志输出处理
 //目前只做简单两个方法 后续根据具体需要在这里增加日志操作
 func Println(v ...interface{}) {

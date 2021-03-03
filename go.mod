@@ -6,7 +6,9 @@ require (
 	github.com/go-gormigrate/gormigrate/v2 v2.0.0
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gookit/color v1.3.8
+	github.com/gorilla/websocket v1.4.2
 	github.com/kataras/iris/v12 v12.2.0-alpha2.0.20210219075829-bfbed2f84174
+	github.com/kataras/neffos v0.0.18
 	github.com/klauspost/compress v1.11.9 // indirect
 	github.com/magiconair/properties v1.8.4 // indirect
 	github.com/mediocregopher/radix/v3 v3.7.0 // indirect
