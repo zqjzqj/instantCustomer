@@ -3,6 +3,7 @@ package models
 import (
 	"database/sql"
 	"fmt"
+	"github.com/kataras/iris/v12/websocket"
 	"github.com/zqjzqj/instantCustomer/config"
 	"github.com/zqjzqj/instantCustomer/global"
 	"github.com/zqjzqj/instantCustomer/sErr"
@@ -36,10 +37,17 @@ type MchAccount struct {
 	LastLoginTime time.Time `gorm:"comment:最近一次登陆时间"`
 	FieldsExtendsJsonType
 	Mch *Merchant `gorm:"foreignKey:Id;-"`
+
+	SessionNum int `gorm:"default:0;comment:当前会话数"`
+	Conn *websocket.NSConn `gorm:"-"`
 }
 
 func (ma *MchAccount) TableName() string {
 	return "mch_account"
+}
+
+func (ma *MchAccount) GetWsRoomId() string {
+	return ma.GetMerchant().WsRoomId
 }
 
 func LoginMch(phone, pwd string) (*MchAccount, error) {

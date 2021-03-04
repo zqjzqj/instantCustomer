@@ -27,6 +27,7 @@ type Merchant struct {
 	Version uint8 `gorm:"default:0;comment:版本：0体验版 1标准版 2高级版...."`
 	Status uint8 `gorm:"default:1;comment:商户状态 1正常 0禁用"`
 	LastLoginTime time.Time `gorm:"comment:最近一次登陆时间"`
+	WsRoomId string `gorm:"size:20;index:idx_room,unique"`
 	FieldsExtendsJsonType
 
 }
@@ -66,12 +67,22 @@ func NewCreateMerchant(phone, name, password string) (*MchAccount, error) {
 		}
 		return nil
 	})
+	//创建唯一房间号
+	mch.GenerateRoomId()
 	if err != nil {
 		return nil, err
 	}
 	return ma, nil
 }
 
-func (m *Merchant) CreateAdmin(pwd string) {
-
+func (m *Merchant) GenerateRoomId() {
+	if m.ID == 0 {
+		return
+	}
+	db := config.GetDbDefault()
+	for {
+		if db.Model(m).Where("id = ?", m.ID).Update("ws_room_id", global.RandStringRunes(8)).Error == nil {
+			break
+		}
+	}
 }

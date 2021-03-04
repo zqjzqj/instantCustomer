@@ -8,6 +8,8 @@ import (
 	"github.com/zqjzqj/instantCustomer/global"
 	"github.com/zqjzqj/instantCustomer/logs"
 	"github.com/zqjzqj/instantCustomer/migrates"
+	"github.com/zqjzqj/instantCustomer/models"
+	"github.com/zqjzqj/instantCustomer/services"
 	"os"
 )
 
@@ -25,6 +27,16 @@ func init() {
 
 func main() {
 	migrateFunc()
+	v := &models.Visitors{}
+	v.Messages = make([]*services.WsMessage, 0)
+	config.GetDbDefault().Where("id = 1").Model(v).Find(v)
+	v.ReadMessageFromStore()
+	for _, v := range v.Messages {
+		logs.PrintlnSuccess(v.Data)
+	}
+//	v.SaveMessage()
+//	config.GetDbDefault().Model(v).Save(v)
+	os.Exit(0)
 
 	app := iris.New()
 	//注册api路由

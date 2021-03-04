@@ -3,6 +3,7 @@ package middleware
 import (
 	"github.com/kataras/iris/v12"
 	"github.com/zqjzqj/instantCustomer/appWeb"
+	"github.com/zqjzqj/instantCustomer/appWeb/appRegister"
 	"github.com/zqjzqj/instantCustomer/config"
 	"github.com/zqjzqj/instantCustomer/global"
 	"github.com/zqjzqj/instantCustomer/models"
@@ -21,6 +22,6 @@ func MchAccountAuth(ctx iris.Context) {
 		ctx.StopWithJSON(200, appWeb.NewResponse(appWeb.ResponseNotLoginCode, "", nil))
 		return
 	}
-	ctx.Values().Set("mAccount", ma)
+	ctx.Values().Set(appRegister.MAccountKey, ma)
 	ctx.Next()
 }

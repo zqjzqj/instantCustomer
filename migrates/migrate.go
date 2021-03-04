@@ -41,6 +41,7 @@ func Rollback(id string) {
 			if err := gm.RollbackLast(); err != nil {
 				logs.Fatal("迁移回滚" + m.GetId() + "执行失败", err)
 			}
+			break
 		}
 	}
 	logs.PrintlnSuccess("migrate rollback success !")
