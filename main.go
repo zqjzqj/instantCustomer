@@ -29,6 +29,8 @@ func main() {
 	app := iris.New()
 	//注册api路由
 	routes.RegisterApiRoutes(app)
+
+	//注册websocket路由
 	routes.RegisterWebsocketRoutes(app)
 	err := app.Run(iris.Addr(":" + config.GetWebCfg().GetPort()), iris.WithConfiguration(iris.Configuration{
 		TimeFormat: global.DateTimeFormatStr,
