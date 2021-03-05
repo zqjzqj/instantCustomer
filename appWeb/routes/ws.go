@@ -7,12 +7,9 @@ import (
 	"github.com/zqjzqj/instantCustomer/appWeb/appRegister"
 	"github.com/zqjzqj/instantCustomer/appWeb/middleware"
 	"github.com/zqjzqj/instantCustomer/appWeb/wsController"
+	"github.com/zqjzqj/instantCustomer/services"
 )
 
-const(
-	WsNamespaceMch = "mch"
-	WsNamespaceVisitor = "visitor"
-)
 
 func RegisterWebsocketRoutes(app *iris.Application) {
 	app.Logger().SetLevel("debug")
@@ -20,7 +17,7 @@ func RegisterWebsocketRoutes(app *iris.Application) {
 	//商户的客服ws空间
 	mvc.Configure(app.Party("/ws/mch",  middleware.MchAccountAuth), func(application *mvc.Application) {
 		application.Register(appRegister.MchAccount)
-		application.HandleWebsocket(&wsController.MchWsController{Namespace:WsNamespaceMch})
+		application.HandleWebsocket(&wsController.MchWsController{Namespace:services.WsNamespaceMch})
 		ws := websocket.New(websocket.DefaultGobwasUpgrader, application)/*
 
 		//修改连接ID

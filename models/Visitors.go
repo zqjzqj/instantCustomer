@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"github.com/kataras/iris/v12/websocket"
 	"github.com/zqjzqj/instantCustomer/config"
-	"github.com/zqjzqj/instantCustomer/sErr"
 	"github.com/zqjzqj/instantCustomer/services"
+	"sync"
 	"time"
 )
 
@@ -27,39 +27,25 @@ type Visitors struct {
 	//当前链接
 	Conn *websocket.NSConn `gorm:"-"`
 	Room *websocket.Room `gorm:"-"`
-	Messages []*services.WsMessage `gorm:"-"`
+	Messages services.WsMessageSlice `gorm:"-"`
 	CurrentMa *MchAccount `gorm:"-"`
+	Mu sync.Mutex `gorm:"-"`
 }
 
 func (v *Visitors) TableName() string {
 	return "visitors"
 }
 
-func (v *Visitors) SendMessage(data, _type string) (*services.WsMessage, error) {
-	if v.MAId == 0 {
-		return nil, sErr.New("未接入到客服")
+func (v *Visitors) IsConnOnline() bool {
+	cm := v.Conn.Conn.Server().GetConnectionsByNamespace(services.WsNamespaceVisitor)
+	_, ok := cm[v.Conn.Conn.ID()]
+	if ok {
+
+		return true
 	}
-	msg := &services.WsMessage{
-		Id: time.Now().UnixNano(),
-		VisitorId:  v.ID,
-		MAccountId: v.MAId,
-		MchId:      v.MchId,
-		Data:       data,
-		Type:       _type,
-		CreatedAt:  time.Now(),
-		Status: services.WsMessageStatusWaitSend,
-	}
-	b, _ := json.Marshal(msg)
-	if v.CurrentMa.Conn.Emit(services.EventOnChat, b) {
-		msg.Status = services.WsMessageStatusFail
-	} else {
-		msg.Status = services.WsMessageStatusSend
-	}
-	v.Messages = append([]*services.WsMessage{
-		msg,
-	}, v.Messages...)
-	return msg, nil
+	return false
 }
+
 
 func (v *Visitors) ReadMessageFromStore() {
 	r := v.GetExtendsJson(VisitorsExtendsJsonKeyMessage).Array()
@@ -72,7 +58,7 @@ func (v *Visitors) ReadMessageFromStore() {
 	}
 }
 
-func (v *Visitors) SaveMessage() {
+func (v *Visitors) SaveMessageLocked() {
 	v.ReadMessageFromStore()
 	v.SetExtendsJson(VisitorsExtendsJsonKeyMessage, v.Messages)
 	config.GetDbDefault().Model(v).Save(v)

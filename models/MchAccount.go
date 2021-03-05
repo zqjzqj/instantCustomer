@@ -7,6 +7,7 @@ import (
 	"github.com/zqjzqj/instantCustomer/config"
 	"github.com/zqjzqj/instantCustomer/global"
 	"github.com/zqjzqj/instantCustomer/sErr"
+	"github.com/zqjzqj/instantCustomer/services"
 	"gorm.io/gorm"
 	"time"
 )
@@ -36,14 +37,26 @@ type MchAccount struct {
 	OnlineStatus uint8 `gorm:"default:0;comment:商户在线状态 1在线 0离线 2隐身"`
 	LastLoginTime time.Time `gorm:"comment:最近一次登陆时间"`
 	FieldsExtendsJsonType
+	ConnId string `gorm:"size:200;index:idx_connId,unique;comment:ws的连接id"`//当前连接id
 	Mch *Merchant `gorm:"foreignKey:Id;-"`
 
 	SessionNum int `gorm:"default:0;comment:当前会话数"`
 	Conn *websocket.NSConn `gorm:"-"`
+	Room *websocket.Room `gorm:"-"`
 }
 
 func (ma *MchAccount) TableName() string {
 	return "mch_account"
+}
+
+func (ma *MchAccount) IsConnOnline() bool {
+	cm := ma.Conn.Conn.Server().GetConnectionsByNamespace(services.WsNamespaceMch)
+	_, ok := cm[ma.Conn.Conn.ID()]
+	if ok {
+
+		return true
+	}
+	return false
 }
 
 func (ma *MchAccount) GetWsRoomId() string {
