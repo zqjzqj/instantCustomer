@@ -91,6 +91,8 @@ func SendWsMessage(from, to interface{}, data string) (*WsMessage, error) {
 
 		if msg.MchAccount.Conn.Emit(EventOnChat, msg.ToBytes()) {
 			msg.Status = WsMessageStatusSend
+		} else {
+			msg.Status = WsMessageStatusFail
 		}
 	} else {
 		if !msg.Visitor.IsConnOnline() {
@@ -103,6 +105,8 @@ func SendWsMessage(from, to interface{}, data string) (*WsMessage, error) {
 
 		if msg.Visitor.Conn.Emit(EventOnChat, msg.ToBytes()) {
 			msg.Status = WsMessageStatusSend
+		} else {
+			msg.Status = WsMessageStatusFail
 		}
 	}
 	msg.StoreCache(true)
