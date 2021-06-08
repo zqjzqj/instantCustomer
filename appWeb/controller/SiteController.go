@@ -9,7 +9,6 @@ import (
 )
 
 type SiteController struct {
-
 }
 
 func (s *SiteController) BeforeActivation(b mvc.BeforeActivation) {}
@@ -22,12 +21,12 @@ func (s *SiteController) PostLogin(ctx iris.Context) *appWeb.ResponseFormat {
 	}
 	ma.GetMch()
 	return appWeb.NewResponse(appWeb.ResponseSuccessCode, "登录成功", map[string]interface{}{
-		"mch_id":ma.MchId,
-		"token":ma.Token.String,
-		"phone":ma.Phone,
-		"real_name":ma.RealName,
-		"mch_name":ma.Mch.Name,
-		"last_login_time":ma.LastLoginTime.Format(global.DateTimeFormatStr),
+		"mch_id":          ma.MchId,
+		"token":           ma.Token.String,
+		"phone":           ma.Phone,
+		"real_name":       ma.RealName,
+		"mch_name":        ma.Mch.Name,
+		"last_login_time": ma.LastLoginTime.Format(global.DateTimeFormatStr),
 	})
 }
 
@@ -40,11 +39,11 @@ func (s *SiteController) PostRegister(ctx iris.Context) *appWeb.ResponseFormat {
 	//自动登录
 	_ = ma.LoginSuccess()
 	return appWeb.NewResponse(appWeb.ResponseSuccessCode, "注册成功", map[string]interface{}{
-		"mch_id":ma.MchId,
-		"token":ma.Token.String,
-		"phone":ma.Phone,
-		"real_name":ma.RealName,
-		"mch_name":ma.Mch.Name,
-		"last_login_time":ma.LastLoginTime.Format(global.DateTimeFormatStr),
+		"mch_id":          ma.MchId,
+		"token":           ma.Token.String,
+		"phone":           ma.Phone,
+		"real_name":       ma.RealName,
+		"mch_name":        ma.Mch.Name,
+		"last_login_time": ma.LastLoginTime.Format(global.DateTimeFormatStr),
 	})
 }

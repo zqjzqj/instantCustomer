@@ -7,7 +7,7 @@ import (
 )
 
 type FieldsExtendsJsonType struct {
-	ExtendsJson	string	`gorm:"type:text;comment:扩展字段"`
+	ExtendsJson string `gorm:"type:text;comment:扩展字段"`
 }
 
 func (e *FieldsExtendsJsonType) GetExtendsJson(key string) gjson.Result {
@@ -20,4 +20,3 @@ func (e *FieldsExtendsJsonType) SetExtendsJson(key string, value interface{}) {
 	eJson, _ := json.Marshal(r)
 	e.ExtendsJson = string(eJson)
 }
-

@@ -5,11 +5,11 @@ type SErr struct {
 }
 
 func New(msg string) *SErr {
-	return &SErr{err:msg}
+	return &SErr{err: msg}
 }
 
 func NewByError(err error) *SErr {
-	return &SErr{err:err.Error()}
+	return &SErr{err: err.Error()}
 }
 
 func (errS *SErr) Error() string {

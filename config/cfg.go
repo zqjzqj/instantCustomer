@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"github.com/spf13/viper"
 	"github.com/tidwall/gjson"
+	"github.com/zqjzqj/instantCustomer/global"
+	"github.com/zqjzqj/instantCustomer/logs"
 	"github.com/zqjzqj/instantCustomer/sErr"
 	"log"
 	"os"
@@ -15,38 +17,18 @@ import (
 var cfg *Cfg
 
 func init() {
-	cfg = &Cfg{
-		dbs:make(map[string]*Database),
-		defaultDb:&Database{},
-	}
+	cfg = &Cfg{}
 }
 
 type Cfg struct {
-	dbs map[string]*Database
-	defaultDb *Database
-	logs *LogsCfg
-	web *Web
+	logs      *LogsCfg
+	web       *Web
 }
 
 type LogsCfg struct {
-	IsPrint bool
+	IsPrint     bool
 	LogFilePath string
-	LogFile *os.File
-}
-
-func GetDbs() map[string]*Database {
-	return cfg.dbs
-}
-
-func GetDb(key string) (*Database, error) {
-	if db, ok := cfg.dbs[key]; ok {
-		return db, nil
-	}
-	return nil, sErr.New("无效的key")
-}
-
-func GetDbDefault() *Database {
-	return cfg.defaultDb
+	LogFile     *os.File
 }
 
 func GetLogCfg() *LogsCfg {
@@ -58,6 +40,8 @@ func GetWebCfg() *Web {
 }
 
 func LoadConfigJson(p string) error {
+	logs.PrintlnInfo("reload config.....")
+	defer logs.PrintlnSuccess("reload config success!")
 	paths, fileName := filepath.Split(p)
 	viper.SetConfigName(fileName)
 	viper.AddConfigPath(paths)
@@ -81,27 +65,29 @@ func LoadConfigJson(p string) error {
 		if charset == "" {
 			charset = "utf8"
 		}
-		db, err := NewDatabase(dbConf.Get("host").String(), dbConf.Get("port").String(), dbConf.Get("database").String(), charset, dbConf.Get("username").String(), dbConf.Get("password").String(), maxIdleCounts, int(dbConf.Get("max_open_counts").Int()))
+		db, err := global.NewDatabaseMysql(dbConf.Get("host").String(), dbConf.Get("port").String(), dbConf.Get("database").String(), charset, dbConf.Get("username").String(), dbConf.Get("password").String(), maxIdleCounts, int(dbConf.Get("max_open_counts").Int()))
 		if err != nil {
 			return sErr.NewByError(err)
 		}
-		if cfg.defaultDb.host == "" && dbConf.Get("default").Bool() == true {
-			cfg.defaultDb = db
+		if dbConf.Get("default").Bool() == true {
+			global.SetMysql("default", db, true)
+		} else {
+			global.SetMysql(key, db, false)
 		}
-		cfg.dbs[key] = db
 	}
-	if cfg.defaultDb.host == "" {
-		cfg.defaultDb, err = GetDb("instant_customer")
-		if err != nil {
-			return err
+	if global.GetMysqlDef() == nil {
+		iDB, ok := global.GetMysql("instant_customer")
+		if !ok {
+			return sErr.New("not default database")
 		}
+		global.SetMysql("default", iDB, true)
 	}
 
 	//载入web配置
 	w := &Web{}
-	w.port = viper.GetString("web.port")
-	if w.port == "" {
-		w.port = "80"
+	w.port = viper.GetUint64("web.port")
+	if w.port == 0 {
+		w.port = 80
 	}
 	cfg.web = w
 
@@ -109,6 +95,7 @@ func LoadConfigJson(p string) error {
 	logCfg := &LogsCfg{}
 	logCfg.IsPrint = viper.GetBool("log.isPrint")
 	logCfg.LogFilePath = viper.GetString("log.logFilePath")
+	logs.IsPrintLog = logCfg.IsPrint
 	if logCfg.LogFilePath != "" {
 		logCfg.LogFile, err = os.OpenFile(logCfg.LogFilePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 		if err != nil {

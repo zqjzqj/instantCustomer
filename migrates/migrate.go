@@ -24,7 +24,7 @@ func Migrate() {
 		gm := m.Migrate()
 		if err := gm.Migrate(); err != nil {
 			_ = gm.RollbackLast()
-			logs.Fatal("迁移" + m.GetId() + "执行失败", err)
+			logs.Fatal("迁移"+m.GetId()+"执行失败", err)
 		}
 	}
 	logs.PrintlnSuccess("migrate success !")
@@ -39,7 +39,7 @@ func Rollback(id string) {
 		if id == m.GetId() {
 			gm := m.Migrate()
 			if err := gm.RollbackLast(); err != nil {
-				logs.Fatal("迁移回滚" + m.GetId() + "执行失败", err)
+				logs.Fatal("迁移回滚"+m.GetId()+"执行失败", err)
 			}
 			break
 		}

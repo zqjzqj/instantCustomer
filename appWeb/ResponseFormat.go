@@ -1,14 +1,14 @@
 package appWeb
 
 const (
-	ResponseSuccessCode = 0
-	ResponseFailCode = 1
+	ResponseSuccessCode  = 0
+	ResponseFailCode     = 1
 	ResponseNotLoginCode = -1
 )
 
 type ResponseFormat struct {
-	Code int `json:"code"`
-	Msg string `json:"msg"`
+	Code int         `json:"code"`
+	Msg  string      `json:"msg"`
 	Data interface{} `json:"data"`
 }
 

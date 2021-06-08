@@ -2,8 +2,8 @@ package global
 
 import "github.com/kataras/iris/v12"
 
-const(
-	ReqTokenName = "token"
+const (
+	ReqTokenName       = "token"
 	ReqTokenHeaderName = "X-Token"
 )
 

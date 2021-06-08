@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/kataras/iris/v12"
 	"github.com/zqjzqj/instantCustomer/appWeb/routes"
 	"github.com/zqjzqj/instantCustomer/config"
@@ -9,6 +10,7 @@ import (
 	"github.com/zqjzqj/instantCustomer/logs"
 	"github.com/zqjzqj/instantCustomer/migrates"
 	"os"
+	"regexp"
 )
 
 var configPath = flag.String("config", "./ic_config.yml", "配置文件路径")
@@ -30,11 +32,7 @@ func main() {
 	//注册api路由
 	routes.RegisterApiRoutes(app)
 
-	//注册websocket路由
-	routes.RegisterWebsocketRoutes(app)
-	err := app.Run(iris.Addr(":" + config.GetWebCfg().GetPort()), iris.WithConfiguration(iris.Configuration{
-		TimeFormat: global.DateTimeFormatStr,
-	}))
+	err := ListenWeb(app)
 	if err != nil {
 		logs.Fatal(err)
 	}
@@ -53,4 +51,30 @@ func migrateFunc() {
 		migrates.Rollback(*mRollbackId)
 	}
 	os.Exit(0)
+}
+
+func ListenWeb(appWeb *iris.Application) error {
+	//注册api路由
+	routes.RegisterApiRoutes(appWeb)
+
+	logs.PrintlnInfo("Http API List:")
+	port := config.GetWebCfg().GetPort()
+	_regexp, _ := regexp.Compile("^/admin")
+	for _, r := range appWeb.GetRoutes() {
+		if r.Method != "OPTIONS" {
+			if _regexp.MatchString(r.Path) {
+				continue
+			}
+			logs.PrintlnInfo(fmt.Sprintf("[%s] http://127.0.0.1:%d%s", r.Method, port, r.Path))
+		}
+	}
+
+	//监听http
+	err := appWeb.Run(iris.Addr(fmt.Sprintf(":%d", port)), iris.WithConfiguration(iris.Configuration{
+		TimeFormat: global.DateTimeFormatStr,
+	}))
+	if err != nil {
+		return err
+	}
+	return nil
 }
