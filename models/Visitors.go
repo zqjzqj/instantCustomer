@@ -18,7 +18,6 @@ type Visitors struct {
 	OnlineStatus   uint8
 	LastActiveTime time.Time `gorm:"index:idx_lat;comment:最近活跃时间"`
 	FieldsExtendsJsonLongType
-
 }
 
 func (v *Visitors) TableName() string {

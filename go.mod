@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/go-gormigrate/gormigrate/v2 v2.0.0
 	github.com/gobwas/httphead v0.1.0 // indirect
+	github.com/google/uuid v1.2.0 // indirect
 	github.com/gookit/color v1.3.8
 	github.com/gorilla/websocket v1.4.2
 	github.com/kataras/iris/v12 v12.2.0-alpha2.0.20210219075829-bfbed2f84174

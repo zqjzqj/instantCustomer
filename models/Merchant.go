@@ -69,4 +69,3 @@ func NewCreateMerchant(phone, name, password string) (*MchAccount, error) {
 	}
 	return ma, nil
 }
-

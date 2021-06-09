@@ -21,8 +21,8 @@ func init() {
 }
 
 type Cfg struct {
-	logs      *LogsCfg
-	web       *Web
+	logs *LogsCfg
+	web  *Web
 }
 
 type LogsCfg struct {
