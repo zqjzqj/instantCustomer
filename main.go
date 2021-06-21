@@ -9,11 +9,8 @@ import (
 	"github.com/zqjzqj/instantCustomer/global"
 	"github.com/zqjzqj/instantCustomer/logs"
 	"github.com/zqjzqj/instantCustomer/migrates"
-	"github.com/zqjzqj/instantCustomer/ws"
-	"net/http"
 	"os"
 	"regexp"
-	"strings"
 )
 
 var configPath = flag.String("config", "./ic_config.yml", "配置文件路径")
@@ -34,6 +31,7 @@ func main() {
 	app := iris.New()
 	//注册api路由
 	routes.RegisterApiRoutes(app)
+	routes.RegisterWsRoutes(app)
 
 	err := ListenWeb(app)
 	if err != nil {
@@ -71,14 +69,6 @@ func ListenWeb(appWeb *iris.Application) error {
 			logs.PrintlnInfo(fmt.Sprintf("[%s] http://127.0.0.1:%d%s", r.Method, port, r.Path))
 		}
 	}
-
-	appWeb.WrapRouter(func(w http.ResponseWriter, r *http.Request, router http.HandlerFunc) {
-		if strings.HasPrefix(r.URL.Path, "/ws") {
-			ws.NewWs(w, r)
-			return
-		}
-		router.ServeHTTP(w, r)
-	})
 
 	//监听http
 	err := appWeb.Run(iris.Addr(fmt.Sprintf(":%d", port)), iris.WithConfiguration(iris.Configuration{

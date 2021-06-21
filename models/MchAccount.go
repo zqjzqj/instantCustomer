@@ -1,10 +1,13 @@
 package models
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"github.com/zqjzqj/instantCustomer/global"
+	"github.com/zqjzqj/instantCustomer/logs"
 	"github.com/zqjzqj/instantCustomer/sErr"
+	"github.com/zqjzqj/instantCustomer/ws"
 	"gorm.io/gorm"
 	"time"
 )
@@ -34,9 +37,9 @@ type MchAccount struct {
 	OnlineStatus  uint8          `gorm:"default:0;comment:商户在线状态 1在线 0离线 2隐身"`
 	LastLoginTime time.Time      `gorm:"comment:最近一次登陆时间"`
 	FieldsExtendsJsonType
-	ConnId     string    `gorm:"size:200;index:idx_connId,unique;comment:ws的连接id"` //当前连接id
-	Mch        *Merchant `gorm:"foreignKey:Id;-"`
-	SessionNum int       `gorm:"default:0;comment:当前会话数"`
+	ConnId     sql.NullString `gorm:"size:200;index:idx_connId,unique;comment:ws的连接id"` //当前连接id
+	Mch        *Merchant      `gorm:"foreignKey:Id;-"`
+	SessionNum int            `gorm:"default:0;comment:当前会话数"`
 }
 
 func (ma *MchAccount) TableName() string {
@@ -145,4 +148,63 @@ func (ma *MchAccount) LoginSuccess() error {
 	ma.Mch.LastLoginTime = now
 	db.Save(ma.Mch)
 	return nil
+}
+
+func (ma *MchAccount) IsOnline() bool {
+	_, ok := ws.FindWsConn(ma.ConnId.String)
+	if ok {
+		if ma.OnlineStatus == global.OnlineStatusLeave {
+			ma.OnlineStatus = global.OnlineStatusYes
+			global.GetDb().Table(ma.TableName()).Where("id = ?", ma.ID).Updates(map[string]interface{}{
+				"online_status": ma.OnlineStatus,
+			})
+		}
+		return true
+	}
+	if ma.OnlineStatus == global.OnlineStatusYes || ma.OnlineStatus == global.OnlineStatusHide {
+		ma.OnlineStatus = global.OnlineStatusHide
+		global.GetDb().Table(ma.TableName()).Where("id = ?", ma.ID).Updates(map[string]interface{}{
+			"conn_id":       nil,
+			"online_status": ma.OnlineStatus,
+		})
+	}
+	return false
+}
+
+func (ma *MchAccount) ListenWsMsg(wsConn *ws.WsConn, ctx context.Context) error {
+	if ma.IsOnline() {
+		err := ws.CloseById(ma.ConnId.String)
+		logs.PrintlnWarning("close connect ", ma.ConnId.String, ma.ID)
+		if err != nil {
+			return err
+		}
+	}
+	ma.ConnId = sql.NullString{
+		String: wsConn.ID(),
+		Valid:  true,
+	}
+	ma.OnlineStatus = global.OnlineStatusYes
+	//这里更新一下在线状态
+	if global.GetDb().Table(ma.TableName()).Where("id = ?", ma.ID).Updates(map[string]interface{}{
+		"conn_id":       ma.ConnId,
+		"online_status": ma.OnlineStatus,
+	}).RowsAffected == 0 {
+		return sErr.New("update conn id fail")
+	}
+	msgChan := make(chan *ws.Message)
+	c, cc := context.WithCancel(ctx)
+	defer func() {
+		ma.ConnId = sql.NullString{
+			String: "",
+			Valid:  false,
+		}
+		ma.OnlineStatus = global.OnlineStatusLeave
+		global.GetDb().Table(ma.TableName()).Where("id = ?", ma.ID).Updates(map[string]interface{}{
+			"conn_id":       nil,
+			"online_status": global.OnlineStatusLeave,
+		})
+		cc()
+	}()
+	go ws.HandleMsgForward(msgChan, c)
+	return wsConn.ListenMsg(msgChan)
 }

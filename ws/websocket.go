@@ -3,9 +3,8 @@ package ws
 import (
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
-	"github.com/zqjzqj/instantCustomer/logs"
-	"log"
 	"net/http"
+	"sync"
 )
 
 var upgrader = &websocket.Upgrader{
@@ -14,27 +13,8 @@ var upgrader = &websocket.Upgrader{
 	},
 }
 
-func NewWs(w http.ResponseWriter, r *http.Request) {
-	c, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		logs.PrintErr(err)
-		return
-	}
-	defer c.Close()
-	for {
-		mt, message, err := c.ReadMessage()
-		if err != nil {
-			log.Println("read:", err)
-			break
-		}
-		log.Printf("recv: %s, type:%d", message, mt)
-		err = c.WriteMessage(mt, message)
-		if err != nil {
-			log.Println("write:", err)
-			break
-		}
-	}
-}
+var wsConnectsMux sync.Mutex
+var wsConnects = make(map[string]*WsConn, 50)
 
 type WsConn struct {
 	id   string
@@ -47,10 +27,50 @@ func NewWsConn(w http.ResponseWriter, r *http.Request) (*WsConn, error) {
 		return nil, err
 	}
 	_uuid := uuid.New()
-	return &WsConn{
+	wsc := &WsConn{
 		id:   _uuid.String(),
 		conn: c,
-	}, nil
+	}
+	wsConnectsMux.Lock()
+	wsConnects[wsc.id] = wsc
+	wsConnectsMux.Unlock()
+	return wsc, nil
+}
+
+func FindWsConn(id string) (*WsConn, bool) {
+	wsc, ok := wsConnects[id]
+	return wsc, ok
+}
+
+func CloseById(id string) error {
+	wsc, ok := FindWsConn(id)
+	if ok {
+		return wsc.Close()
+	}
+	return nil
+}
+
+func (wsc *WsConn) ListenMsg(msgChan chan *Message) error {
+	var rErr error
+	for {
+		mt, message, err := wsc.conn.ReadMessage()
+		if err != nil {
+			rErr = err
+			break
+		}
+		msg, err := NewMessageByJsonBytes(message, mt, "", "")
+		if err != nil {
+			rErr = err
+			break
+		}
+		msgChan <- msg
+	}
+	_ = wsc.Close()
+	return rErr
+}
+
+func (wsc *WsConn) WriteMsg(msg *Message) error {
+	return wsc.conn.WriteMessage(msg.Mt, msg.ToMsgBytes())
 }
 
 func (wsc *WsConn) ID() string {
@@ -58,5 +78,12 @@ func (wsc *WsConn) ID() string {
 }
 
 func (wsc *WsConn) Close() error {
-	return wsc.conn.Close()
+	err := wsc.conn.Close()
+	if err != nil {
+		return err
+	}
+	wsConnectsMux.Lock()
+	delete(wsConnects, wsc.id)
+	wsConnectsMux.Unlock()
+	return nil
 }
