@@ -57,7 +57,7 @@ func (msg *Message) ToMsgBytes() []byte {
 	return []byte{}
 }
 
-func HandleMsgForward(msgChan chan *Message, ctx context.Context) {
+func HandleMsgForwardToClient(msgChan chan *Message, ctx context.Context, afterFn func(msg *Message)) {
 	for {
 		select {
 		case msg := <-msgChan:
@@ -72,6 +72,9 @@ func HandleMsgForward(msgChan chan *Message, ctx context.Context) {
 				logs.PrintErr("send msg err ", err)
 			} else {
 				logs.PrintlnInfo("send msg ok ", msg.Data)
+			}
+			if afterFn != nil {
+				afterFn(msg)
 			}
 		case <-ctx.Done():
 			logs.PrintlnInfo("exit msg forward....")

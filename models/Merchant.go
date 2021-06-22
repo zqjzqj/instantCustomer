@@ -3,6 +3,7 @@ package models
 import (
 	"github.com/zqjzqj/instantCustomer/global"
 	"github.com/zqjzqj/instantCustomer/sErr"
+	"github.com/zqjzqj/instantCustomer/ws"
 	"gorm.io/gorm"
 	"time"
 )
@@ -26,7 +27,6 @@ type Merchant struct {
 	Version       uint8     `gorm:"default:0;comment:版本：0体验版 1标准版 2高级版...."`
 	Status        uint8     `gorm:"default:1;comment:商户状态 1正常 0禁用"`
 	LastLoginTime time.Time `gorm:"comment:最近一次登陆时间"`
-	WsRoomId      string    `gorm:"size:20;index:idx_room,unique"`
 	FieldsExtendsJsonType
 }
 
@@ -66,6 +66,21 @@ func NewCreateMerchant(phone, name, password string) (*MchAccount, error) {
 	})
 	if err != nil {
 		return nil, err
+	}
+	return ma, nil
+}
+
+func AllocationMchAccount(mchId string) (*MchAccount, error) {
+RE:
+	ma := &MchAccount{}
+	if global.GetDb().Where("mch_id = ? and session_num < max_session", mchId).
+		Where("online_status", global.OnlineStatusYes).
+		Limit(1).Order("updated_at desc").Find(ma).RowsAffected == 0 {
+		return nil, sErr.New("merchant reach the upper limit")
+	}
+	if _, ok := ws.FindWsConn(ma.ConnId.String); !ok {
+		global.GetDb().Table(ma.TableName()).Where("id = ?", ma.ID).Update("online_status", global.OnlineStatusLeave)
+		goto RE
 	}
 	return ma, nil
 }

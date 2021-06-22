@@ -205,6 +205,7 @@ func (ma *MchAccount) ListenWsMsg(wsConn *ws.WsConn, ctx context.Context) error 
 		})
 		cc()
 	}()
-	go ws.HandleMsgForward(msgChan, c)
+	go ws.HandleMsgForwardToClient(msgChan, c, nil)
+
 	return wsConn.ListenMsg(msgChan)
 }
