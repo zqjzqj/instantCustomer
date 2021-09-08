@@ -29,9 +29,6 @@ func main() {
 	migrateFunc()
 
 	app := iris.New()
-	//注册api路由
-	routes.RegisterApiRoutes(app)
-	routes.RegisterWsRoutes(app)
 
 	err := ListenWeb(app)
 	if err != nil {
@@ -57,6 +54,7 @@ func migrateFunc() {
 func ListenWeb(appWeb *iris.Application) error {
 	//注册api路由
 	routes.RegisterApiRoutes(appWeb)
+	routes.RegisterWsRoutes(appWeb)
 
 	logs.PrintlnInfo("Http API List:")
 	port := config.GetWebCfg().GetPort()

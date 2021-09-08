@@ -1,0 +1,16 @@
+web:
+  port: 8070
+db:
+  instant_customer:
+    host: 127.0.0.1
+    port: 3306
+    database: instant_customer
+    charset: utf8mb4
+    username: root
+    password: 123456
+    max_idle_counts: 10
+    max_open_counts: 50
+    default: true
+log:
+  isPrint: true #是否打印日志文件
+  logFilePath: #日志文件路径 空位标准输出
