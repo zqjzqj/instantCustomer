@@ -5,19 +5,20 @@ import (
 	"github.com/zqjzqj/instantCustomer/appWeb"
 	"github.com/zqjzqj/instantCustomer/global"
 	"github.com/zqjzqj/instantCustomer/models"
+	"net/http"
 )
 
 func RegisterUserAndAuth(ctx iris.Context) *models.MchAccount {
 	token := global.GetReqToken(ctx)
 	if token == "" {
-		ctx.StopWithJSON(200, appWeb.NewResponse(appWeb.ResponseNotLoginCode, "", nil))
+		ctx.StopWithJSON(http.StatusOK, appWeb.NewResponse(appWeb.ResponseNotLoginCode, "", nil))
 		return nil
 	}
 
 	ma := &models.MchAccount{}
 	global.GetDb().Where("token = ?", token).Find(ma)
 	if ma.ID == 0 {
-		ctx.StopWithJSON(200, appWeb.NewResponse(appWeb.ResponseNotLoginCode, "", nil))
+		ctx.StopWithJSON(http.StatusOK, appWeb.NewResponse(appWeb.ResponseNotLoginCode, "", nil))
 		return nil
 	}
 	return ma

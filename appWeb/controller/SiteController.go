@@ -13,6 +13,10 @@ type SiteController struct {
 
 func (s *SiteController) BeforeActivation(b mvc.BeforeActivation) {}
 
+func (s *SiteController) Get(ctx iris.Context) *appWeb.ResponseFormat {
+	return appWeb.NewResponse(appWeb.ResponseSuccessCode, "OK", nil)
+}
+
 //登录
 func (s *SiteController) PostLogin(ctx iris.Context) *appWeb.ResponseFormat {
 	ma, err := models.LoginMch(ctx.PostValue("phone"), ctx.PostValue("password"))

@@ -3,6 +3,7 @@ module github.com/zqjzqj/instantCustomer
 go 1.16
 
 require (
+	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/go-gormigrate/gormigrate/v2 v2.0.0
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/google/uuid v1.2.0
